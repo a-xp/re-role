@@ -21,7 +21,7 @@ export class Room extends React.Component {
         const user = room && room.members.find(u => u.login === login);
         return user && room ? <React.Fragment>
                     <Message size='large' icon={room.status === STATUS.STARTED}>
-                        { room.status === STATUS.STARTED && <Image circular size='small' src={resistanceIcon}/>}
+                        { room.status === STATUS.STARTED && <Image circular size='small' src={teamIcons[user.team]}/>}
                         <Message.Content>
                         {room.status === STATUS.NEW && <React.Fragment>
                             <p>Waiting for other players to join</p>

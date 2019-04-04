@@ -35,9 +35,7 @@ export class App extends React.Component {
 
     onLeave = () => {
         credApi.clearCred();
-        this.setState({
-            roomId: null
-        })
+        window.location = '/';
     };
 
     componentDidMount(){
