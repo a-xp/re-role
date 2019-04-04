@@ -1,32 +1,59 @@
 import React from "react";
-import {Container, Form, Header} from "semantic-ui-react";
+import {Container, Header} from "semantic-ui-react";
 import {Enter} from "../Enter";
 import {Room} from "../Room";
+import {gameApi} from "../../api/game";
+import {credApi} from "../../api/store";
 
 export class App extends React.Component {
 
     state = {
         roomId: null,
         login: null,
+        secret: null,
         ready: false
     };
 
     render() {
-        const {roomId, login} = this.state;
+        const {roomId, login, secret} = this.state;
 
         return <React.Fragment>
                 <Header as="h2" className="center aligned">Random role assigner</Header>
                 <Container>
                     {!roomId && <Enter onEnter={this.onEnter}/>}
-                    {roomId && <Room roomId={roomId} login={login}/>}
+                    {roomId && <Room roomId={roomId} login={login} secret={secret} onLeave={this.onLeave}/>}
                 </Container>
             </React.Fragment>
     }
 
-    onEnter = (roomId, login) => {
+    onEnter = (cred) => {
+        credApi.setCred(cred);
         this.setState({
-            roomId, login
+            ...cred
         })
+    };
+
+    onLeave = () => {
+        credApi.clearCred();
+        this.setState({
+            roomId: null
+        })
+    };
+
+    componentDidMount(){
+        this.tryLogin();
+    }
+
+    tryLogin = () => {
+        const path = window.location.pathname.split('/');
+        const cred = credApi.getCred();
+        if(cred && (!path[1] || cred.roomId === path[1])){
+            gameApi.login(cred).then(() => {
+                this.setState({
+                    ...cred
+                })
+            })
+        }
     }
 
 }

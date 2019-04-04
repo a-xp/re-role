@@ -6,5 +6,6 @@ export const STATUS = {
 
 export const TEAM = {
   BAD: 'BAD',
-  GOOD: 'GOOD'
+  GOOD: 'GOOD',
+  RANDOM: 'RANDOM'
 };

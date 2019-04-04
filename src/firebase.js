@@ -1,6 +1,6 @@
 import firebase from "firebase";
 import "firebase/firestore";
-import firebaseCred from "../cred";
+import firebaseCred from "./cred";
 
 firebase.initializeApp({
     apiKey: firebaseCred.apiKey,

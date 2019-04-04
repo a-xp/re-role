@@ -24,4 +24,5 @@ yarn-error.log*
 
 *.iml
 .idea/
-/cred.js
+/src/cred.js
+/.firebase
