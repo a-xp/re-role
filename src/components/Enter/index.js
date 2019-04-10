@@ -3,7 +3,7 @@ import {Button, Form, Message, Tab} from "semantic-ui-react";
 import {gameApi} from "../../api/game";
 import * as ReactDOM from "react-dom";
 import serialize from 'form-serialize';
-import {TEAM} from "../../api/enum";
+import {GAME_TYPE, TEAM} from "../../api/enum";
 
 
 export class Enter extends React.Component {
@@ -58,8 +58,8 @@ export class Enter extends React.Component {
                 }
                 <Form.Group grouped>
                     <label>Choose a game</label>
-                    <Form.Field label='Resistance Classic' control='input' type='radio' name='game' defaultChecked/>
-                    <Form.Field label='Resistance Avalon' control='input' type='radio' name='game'/>
+                    <Form.Field label='Resistance Classic' control='input' type='radio' name='game' value={GAME_TYPE.CLASSIC} defaultChecked/>
+                    <Form.Field label='Resistance Avalon' control='input' type='radio' name='game' value={GAME_TYPE.AVALON}/>
                 </Form.Group>
                 <Form.Field label='Your name' control='input' name='login'/>
                 <Form.Group grouped>
@@ -76,7 +76,6 @@ export class Enter extends React.Component {
     onJoin = () => {
         const {onEnter} = this.props;
         const value = serialize(ReactDOM.findDOMNode(this.form.current), {hash: true});
-        console.log(value);
         if(value.login && value.id && value.side){
             gameApi.join(value.id, value.login, value.side).then(cred => {
                 onEnter && onEnter(cred);

@@ -1,5 +1,6 @@
 import db from '../firebase';
-import {STATUS, TEAM} from "./enum";
+import {STATUS} from "./enum";
+import {assignRoles, roleTraits} from "../domain/roles";
 
 async function create(type, login, prefSide) {
     const secret = makeSecret();
@@ -65,13 +66,8 @@ async function start(roomId) {
             throw new Error("Number of players should be between 5 and 10");
         }
         if(room.status === STATUS.NEW){
-            const teams = room.members.reduce( (r, m) => ({...r, [m.prefSide]: [...r[m.prefSide], m.login]}), {
-                [TEAM.BAD]: [],
-                [TEAM.GOOD]: [],
-                [TEAM.RANDOM]: []
-            });
-            const players = [...shuffle(teams[TEAM.GOOD]), ...shuffle(teams[TEAM.RANDOM]), ...shuffle(teams[TEAM.BAD])];
-            const newMembers = room.members.map( m => ({...m, team: players.indexOf(m.login) < teamSize[players.length] ? TEAM.GOOD : TEAM.BAD}));
+            const roles = assignRoles[room.type](room.members.map(m => m.prefSide));
+            const newMembers = room.members.map( (m,i) => ({...m, team: roleTraits[roles[i]], role: roles[i]}));
             transaction.update(roomRef, {...room, members: newMembers, status: STATUS.STARTED});
         }
     });
@@ -111,15 +107,6 @@ function makeSecret(){
 function listenRoom(id, cb) {
     return db.collection('rooms').doc(id).onSnapshot(cb);
 }
-
-function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
-}
-
-const teamSize = {
-    5: 3, 6:4, 7:4,8:5,9:6,10:6
-};
-
 
 
 export const gameApi = {create, join, listenRoom, login, start, end, kick};

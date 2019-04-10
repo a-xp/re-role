@@ -1,10 +1,12 @@
 import React from "react";
-import {Button, Header, Icon, Image, List, Message} from "semantic-ui-react";
-import resistanceIcon from './soldier.svg';
-import spyIcon from './secret-agent.svg';
-import anonymousIcon from './anonymous.svg';
+import {Button, Header, Message} from "semantic-ui-react";
+
 import {gameApi} from "../../api/game";
-import {STATUS, TEAM} from "../../api/enum";
+import {STATUS} from "../../api/enum";
+import {NewGameHeader} from "./NewGameHeader";
+import {ActiveGameHeader} from "./ActiveGameHeader";
+import {FinishedGameHeader} from "./FinishedGameHeader";
+import {MembersList} from "./MembersList";
 
 export class Room extends React.Component {
 
@@ -20,35 +22,12 @@ export class Room extends React.Component {
         const {room, errMsg} = this.state;
         const user = room && room.members.find(u => u.login === login);
         return user && room ? <React.Fragment>
-                    <Message size='large' icon={room.status === STATUS.STARTED}>
-                        { room.status === STATUS.STARTED && <Image circular size='small' src={teamIcons[user.team]}/>}
-                        <Message.Content>
-                        {room.status === STATUS.NEW && <React.Fragment>
-                            <p>Waiting for other players to join</p>
-                            <p><a className="roomLink" href={`/${roomId}`}>ROOM LINK</a></p>
-                        </React.Fragment>}
-                        {room.status === STATUS.STARTED && <React.Fragment>
-                            <Message.Header>Game is in progress</Message.Header>
-                            <p>You are a {teamText[user.team][0]}</p>
-                            <p>{teamText[user.team][1]}</p>
-                        </React.Fragment>}
-                        {room.status === STATUS.FINISHED && <React.Fragment>
-                            <Message.Header>Game has ended</Message.Header>
-                        </React.Fragment>}
-                        </Message.Content>
-                    </Message>
+                {room.status === STATUS.NEW && <NewGameHeader roomId={roomId}/>}
+                {room.status === STATUS.STARTED && <ActiveGameHeader role={user.role}/>}
+                {room.status === STATUS.FINISHED && <FinishedGameHeader/>}
                 <Header as='h3'>Players in this room</Header>
-                <List verticalAlign='middle' size='huge' celled>
-                    {room.members.map(m => <List.Item key={m.login}>
-                        <Image avatar src={this.memberIcon(m, user, room.status)}/>
-                        <List.Content>
-                            <List.Header>{m.login}</List.Header>
-                        </List.Content>
-                        {room.status === STATUS.NEW && user.host && <List.Content floated='right'>
-                            <Button icon onClick={() => this.kick(m.login)} color='red'><Icon name='thumbs down'/></Button>
-                        </List.Content>}
-                    </List.Item>)}
-                </List>
+                <MembersList user={user} members={room.members} showKickBtn={room.status === STATUS.NEW && user.host}
+                             onKick={this.kick} status={room.status} type={room.type}/>
                  { errMsg && <Message negative>
                     <Message.Header>Something went wrong!</Message.Header>
                         {errMsg}
@@ -62,7 +41,7 @@ export class Room extends React.Component {
     }
 
     componentDidMount() {
-        const {roomId, login} = this.props;
+        const {roomId} = this.props;
         this.removeListener = gameApi.listenRoom(roomId, (room) => {
             this.setState({
                 room: room.data()
@@ -76,15 +55,6 @@ export class Room extends React.Component {
             this.removeListener = null;
         }
     }
-
-    memberIcon = (member, user, status) => {
-        switch (status) {
-            case STATUS.STARTED: return user.login === member.login || user.team === TEAM.BAD ?
-                teamIcons[member.team] : anonymousIcon;
-            case STATUS.FINISHED: return teamIcons[member.team];
-            default: return anonymousIcon;
-        }
-    };
 
     start = () => {
         this.clearErr();
@@ -132,18 +102,4 @@ export class Room extends React.Component {
 
 }
 
-const teamIcons = {
-    [TEAM.GOOD]: resistanceIcon,
-    [TEAM.BAD]: spyIcon
-};
 
-const teamText = {
-    [TEAM.BAD]: [
-        "government spy",
-        "Infiltrate the Resistance and thwart their missions!"
-    ],
-    [TEAM.GOOD]: [
-        "member of the Resistance",
-        "Overthrow these powerful unjust rulers!"
-    ]
-};

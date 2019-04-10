@@ -9,3 +9,8 @@ export const TEAM = {
   GOOD: 'GOOD',
   RANDOM: 'RANDOM'
 };
+
+export const GAME_TYPE = {
+  CLASSIC: 'CLASSIC',
+  AVALON: 'AVALON'
+};
