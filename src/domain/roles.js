@@ -1,4 +1,4 @@
-import {GAME_TYPE, TEAM} from "../api/enum";
+import {TEAM} from "../api/enum";
 import resistanceIcon from './icons/soldier.svg';
 import spyIcon from './icons/secret-agent.svg';
 import anonymousIcon from './icons/anonymous.svg';
@@ -14,37 +14,50 @@ export const ROLES = {
     COMMANDER: 'COMMANDER',
     FALSE_COMMANDER: 'FALSE_COMMANDER',
     ASSASSIN: 'ASSASSIN',
-    UNKNOWN: 'UNKNOWN'
+    UNKNOWN: 'UNKNOWN',
+    SPY_DEFECTOR: 'SPY_DEFECTOR',
+    DEFECTOR: 'DEFECTOR',
+    DEEP_COVER_SPY: 'DEEP_COVER_SPY',
+    BLIND_SPY: 'BLIND_SPY'
 };
 
 export const roleTraits = {
-    [ROLES.ASSASSIN]: {side: TEAM.BAD, title: 'the Assassin', icon: assassinIcon},
-    [ROLES.FALSE_COMMANDER]: {side: TEAM.BAD, title: 'the false Commander', icon: falseCommanderIcon},
-    [ROLES.SPY]: {side: TEAM.BAD, title: 'a government spy', icon: spyIcon},
-    [ROLES.COMMANDER]: {side: TEAM.GOOD, title: 'the Commander', icon:commanderIcon},
-    [ROLES.BODY_GUARD]: {side: TEAM.GOOD, title: 'the Body Guard', icon:bodyGuardIcon},
-    [ROLES.RESISTANCE]: {side: TEAM.GOOD, title: 'a member of the Resistance', icon:resistanceIcon},
-    [ROLES.UNKNOWN]: {icon: anonymousIcon}
+    [ROLES.ASSASSIN]: {id: ROLES.ASSASSIN, side: TEAM.BAD, title: 'Assassin', icon: assassinIcon, core: true},
+    [ROLES.FALSE_COMMANDER]: {id: ROLES.FALSE_COMMANDER, side: TEAM.BAD, title: 'False Commander', icon: falseCommanderIcon, info: 'Appears as Commander'},
+    [ROLES.SPY]: {id: ROLES.SPY, side: TEAM.BAD, title: 'Government spy', icon: spyIcon, base: true},
+    [ROLES.COMMANDER]: {id: ROLES.COMMANDER, side: TEAM.GOOD, title: 'Commander', icon:commanderIcon, core: true, info: 'Knows spies'},
+    [ROLES.BODY_GUARD]: {id: ROLES.BODY_GUARD, side: TEAM.GOOD, title: 'Bodyguard', icon:bodyGuardIcon, info: 'Knows commanders'},
+    [ROLES.RESISTANCE]: {id: ROLES.RESISTANCE, side: TEAM.GOOD, title: 'Member of the Resistance', icon:resistanceIcon, base: true},
+    [ROLES.UNKNOWN]: {id: ROLES.UNKNOWN, icon: anonymousIcon},
+    [ROLES.SPY_DEFECTOR]: {id:ROLES.SPY_DEFECTOR, side:TEAM.BAD, title: 'Spy Defector', icon: spyIcon, info: 'Might switch side'},
+    [ROLES.DEFECTOR]: {id: ROLES.DEFECTOR, side: TEAM.GOOD, title: 'Defector', icon: resistanceIcon, info: 'Might switch side'},
+    [ROLES.DEEP_COVER_SPY]: {id: ROLES.DEEP_COVER_SPY, side: TEAM.BAD, title: 'Deep cover Spy', icon: spyIcon, info: 'Unknown to Commander'},
+    [ROLES.BLIND_SPY]: {id: ROLES.BLIND_SPY, side: TEAM.BAD, title: 'Blind Spy', icon: spyIcon, info: 'Unknown to other spies'}
 };
 
+export const teamTraits = {
+  [TEAM.BAD]: {color: 'spy text', title: 'The Spies', success: ['3 Missions fail', 'Commander named by the Assassin']},
+  [TEAM.GOOD]: {color: 'resistance text', title: 'The Resistance', success: ['3 Missions are completed successfully'], fail: ['Commander named by the Spies']}
+};
 
-function assignClassicRoles(playersPrefSide) {
+export function assignRoles(playersPrefSide, gameRoles) {
     const teams = splitTeams(playersPrefSide);
-    const result = Array(playersPrefSide.length).fill(ROLES.RESISTANCE);
-    teams[TEAM.BAD].forEach(i => result[i] = ROLES.SPY);
-    return result;
-}
-
-function assignAvalonRoles(playersPrefSide) {
-    const teams = splitTeams(playersPrefSide);
-    const result = Array(playersPrefSide.length).fill(ROLES.RESISTANCE);
+    const result = Array(playersPrefSide.length);
     const good = shuffle(teams[TEAM.GOOD]);
     const bad = shuffle(teams[TEAM.BAD]);
-    result[good[0]] = ROLES.COMMANDER;
-    result[good[1]] = ROLES.BODY_GUARD;
-    result[bad[0]] = ROLES.ASSASSIN;
-    result[bad[1]] = ROLES.FALSE_COMMANDER;
-    bad.slice(2).forEach(i => result[i] = ROLES.SPY);
+    [...gameRoles.filter(r => roleTraits[r].core), ...shuffle(gameRoles.filter(r => !roleTraits[r].core))].forEach(r => {
+        if(roleTraits[r].side === TEAM.GOOD && good.length){
+            result[good.shift()] = r;
+        }else if(roleTraits[r].side === TEAM.BAD && bad.length){
+            result[bad.shift()] = r;
+        }
+    });
+    while(good.length>0){
+        result[good.shift()] = ROLES.RESISTANCE;
+    }
+    while(bad.length>0){
+        result[bad.shift()] = ROLES.SPY;
+    }
     return result;
 }
 
@@ -75,27 +88,25 @@ const teamSize = {
     5: 3, 6: 4, 7: 4, 8: 5, 9: 6, 10: 6
 };
 
-function getClassicRoleVision(ownRole, visionRole) {
-    return ownRole === ROLES.SPY ? visionRole : ROLES.UNKNOWN;
-}
-
-function getAvalonRoleVision(ownRole, visionRole) {
+export function getRoleVision(ownRole, visionRole) {
+    console.log(ownRole, visionRole);
     switch (ownRole) {
         case ROLES.SPY:
         case ROLES.FALSE_COMMANDER:
-        case ROLES.ASSASSIN: return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : visionRole;
+        case ROLES.ASSASSIN:
+        case ROLES.DEEP_COVER_SPY:
+            if(visionRole === ROLES.SPY_DEFECTOR) return ROLES.SPY;
+            return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : visionRole;
         case ROLES.BODY_GUARD: return visionRole === ROLES.COMMANDER || visionRole === ROLES.FALSE_COMMANDER ? ROLES.COMMANDER : ROLES.UNKNOWN;
-        case ROLES.COMMANDER: return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : ROLES.SPY;
+        case ROLES.COMMANDER:
+            if(visionRole === ROLES.DEEP_COVER_SPY) return ROLES.RESISTANCE;
+            return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : ROLES.SPY;
         default: return ROLES.UNKNOWN;
     }
 }
 
-export const assignRoles = {
-        [GAME_TYPE.CLASSIC]: assignClassicRoles,
-        [GAME_TYPE.AVALON]: assignAvalonRoles
-    };
-
-export const getRoleVision = {
-        [GAME_TYPE.CLASSIC]: getClassicRoleVision,
-        [GAME_TYPE.AVALON]: getAvalonRoleVision
-    };
+export function getDefectorTurns(roles){
+    return roles.filter(r => r===ROLES.SPY_DEFECTOR || r===ROLES.DEFECTOR).length === 2 ? [
+        Math.ceil(Math.random()*7), Math.ceil(Math.random()*7)
+    ] : [];
+}

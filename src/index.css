@@ -5,6 +5,29 @@
 }
 
 body {
-  padding-top: 10px;
+  padding: 10px 5px 0;
 }
 
+#root {
+  height: 100%;
+}
+
+.resistance.text {
+  color: #55a5b0!important;
+}
+
+.spy.text {
+  color: #c40b15!important;
+}
+
+.success.text {
+  color: #21ba45;
+}
+
+.danger.text {
+  color: #db2828;
+}
+
+ul {
+  margin: 5px 0;
+}

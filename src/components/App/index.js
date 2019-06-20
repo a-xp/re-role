@@ -1,5 +1,4 @@
 import React from "react";
-import {Container, Header} from "semantic-ui-react";
 import {Enter} from "../Enter";
 import {Room} from "../Room";
 import {gameApi} from "../../api/game";
@@ -18,11 +17,8 @@ export class App extends React.Component {
         const {roomId, login, secret} = this.state;
 
         return <React.Fragment>
-                <Header as="h2" className="center aligned">Random role assigner</Header>
-                <Container>
                     {!roomId && <Enter onEnter={this.onEnter}/>}
                     {roomId && <Room roomId={roomId} login={login} secret={secret} onLeave={this.onLeave}/>}
-                </Container>
             </React.Fragment>
     }
 

@@ -1,43 +1,48 @@
 import React from "react";
-import {Button, Header, Message} from "semantic-ui-react";
+import {Header} from "semantic-ui-react";
 
 import {gameApi} from "../../api/game";
 import {STATUS} from "../../api/enum";
-import {NewGameHeader} from "./NewGameHeader";
-import {ActiveGameHeader} from "./ActiveGameHeader";
-import {FinishedGameHeader} from "./FinishedGameHeader";
+import {BottomMenu} from "./BottomMenu";
 import {MembersList} from "./MembersList";
+import './index.css';
+import {Board} from "./Board";
+
+export const TABS = {
+    BOARD: 'BOARD',
+    MEMBERS: 'MEMBERS',
+    HISTORY: 'HISTORY'
+};
 
 export class Room extends React.Component {
 
     state = {
         room: null,
-        errMsg: null
+        errMsg: null,
+        tab: TABS.BOARD
     };
 
     removeListener = null;
 
     render() {
         const {login, roomId} = this.props;
-        const {room, errMsg} = this.state;
+        const {room, errMsg, tab} = this.state;
         const user = room && room.members.find(u => u.login === login);
-        return user && room ? <React.Fragment>
-                {room.status === STATUS.NEW && <NewGameHeader roomId={roomId}/>}
-                {room.status === STATUS.STARTED && <ActiveGameHeader role={user.role}/>}
-                {room.status === STATUS.FINISHED && <FinishedGameHeader/>}
-                <Header as='h3'>Players in this room</Header>
-                <MembersList user={user} members={room.members} showKickBtn={room.status === STATUS.NEW && user.host}
-                             onKick={this.kick} status={room.status} type={room.type}/>
-                 { errMsg && <Message negative>
-                    <Message.Header>Something went wrong!</Message.Header>
-                        {errMsg}
-                    </Message>}
-                 <div>
-                    {user.host && room.status === STATUS.NEW && <Button color='green' size='large' onClick={this.start}>Start the game</Button>}
-                    {user.host && room.status === STATUS.STARTED && <Button color='green' size='large' onClick={this.end}>End the game</Button>}
-                    <Button size='large' color='red' onClick={this.leave}>Leave the room</Button>
+        return user && room ?
+                <div className="room">
+                    {errMsg && <div className="ui negative message room-msg">
+                        <div className="header">Something went wrong</div>
+                        <p>{errMsg}</p>
+                    </div>}
+                    <div className="room-content">
+                        {tab === TABS.MEMBERS &&
+                            <MembersList room={room} user={user} api={gameApi} roomId={roomId} onLeave={() => this.leave()}/>
+                        }
+                        {tab === TABS.BOARD && <Board room={room} user={user} roomId={roomId} api={gameApi}/>}
+                    </div>
+                    <BottomMenu onTabSet={(tab)=>this.setState({tab})} tab={tab}/>
                 </div>
-            </React.Fragment> : <Header centered="true" as='h5'>Searching for a room</Header>
+             : <Header centered="true" as='h5'>Searching for a room</Header>
     }
 
     componentDidMount() {
@@ -79,25 +84,16 @@ export class Room extends React.Component {
         });
     };
 
-    leave = () => {
-        const {onLeave} = this.props;
-        onLeave && onLeave();
-    };
-
-    kick = (login) => {
-        this.clearErr();
-        const {roomId} = this.props;
-        gameApi.kick(login, roomId).catch(err => {
-            this.setState({
-                errMsg: err.message || 'Unknown error'
-            })
-        });
-    };
-
     clearErr = () => {
         this.setState({
             errMsg: null
         })
+    };
+
+    leave(){
+        const {onLeave} = this.props;
+        console.log('leave');
+        onLeave && onLeave();
     }
 
 }

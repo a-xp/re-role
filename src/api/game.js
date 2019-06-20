@@ -1,12 +1,12 @@
 import db from '../firebase';
-import {STATUS} from "./enum";
-import {assignRoles, roleTraits} from "../domain/roles";
+import {OP_STATUS, STATUS, TEAM} from "./enum";
+import {assignRoles, getDefectorTurns, ROLES, roleTraits} from "../domain/roles";
+import {getNextLeader, getScore} from "../domain/missions";
 
 async function create(type, login, prefSide) {
     const secret = makeSecret();
     const ref = await db.collection('rooms').add(
         {
-            type,
             members: [
                 {login, prefSide, host: true, secret}
             ],
@@ -66,9 +66,13 @@ async function start(roomId) {
             throw new Error("Number of players should be between 5 and 10");
         }
         if(room.status === STATUS.NEW){
-            const roles = assignRoles[room.type](room.members.map(m => m.prefSide));
-            const newMembers = room.members.map( (m,i) => ({...m, team: roleTraits[roles[i]], role: roles[i]}));
-            transaction.update(roomRef, {...room, members: newMembers, status: STATUS.STARTED});
+            const roles = assignRoles(room.members.map(m => m.prefSide), room.roles);
+            console.log(roles);
+            const defectorTurn = getDefectorTurns(roles);
+            const newMembers = room.members.map( (m,i) => ({...m, team: roleTraits[roles[i]].side, role: roles[i], originalRole: roles[i]}));
+            transaction.update(roomRef, {...room, members: newMembers, status: STATUS.STARTED, missions:[
+                    {num: 0, status: OP_STATUS.PREPARE, leader: Math.ceil(Math.random() * newMembers.length), participants: []}
+                ], defectorTurn, score:{[TEAM.BAD]:0, [TEAM.GOOD]:0}});
         }
     });
 }
@@ -100,6 +104,30 @@ async function kick(login, roomId) {
     })
 }
 
+async function setRoles(roomId, roles) {
+    const roomRef = db.collection('rooms').doc(roomId);
+    await db.runTransaction( async transaction => {
+        const roomDoc = await roomRef.get();
+        const room = roomDoc.data();
+        if (room.status === STATUS.NEW) {
+            transaction.update(roomRef, {...room, roles});
+        }
+    });
+}
+
+async function updateCurrentMission(roomId, mutator) {
+    const roomRef = db.collection('rooms').doc(roomId);
+    await db.runTransaction( async transaction => {
+        const roomDoc = await roomRef.get();
+        const room = roomDoc.data();
+        if (room.status === STATUS.STARTED) {
+            const mission = mutator(room.missions[room.missions.length-1]);
+            transaction.update(roomRef, {...room, missions: [...room.missions.slice(0, room.missions.length-1),
+                    mission]});
+        }
+    });
+}
+
 function makeSecret(){
     return Math.random().toString(36).replace(/[^a-z]+/g, '');
 }
@@ -108,5 +136,38 @@ function listenRoom(id, cb) {
     return db.collection('rooms').doc(id).onSnapshot(cb);
 }
 
+async function nextMission(roomId) {
+    const roomRef = db.collection('rooms').doc(roomId);
+    await db.runTransaction( async transaction => {
+        const roomDoc = await roomRef.get();
+        const room = roomDoc.data();
+        if(room.status === STATUS.STARTED) {
+            const lastMission = room.missions[room.missions.length-1];
+            const score = getScore(room.missions);
+            console.log(room, score);
+            if(score[TEAM.GOOD]>=3 || score[TEAM.BAD]>=3){
+                transaction.update(roomRef, {...room, status: STATUS.FINISHED, score});
+                return;
+            }
+            let members = room.members;
+            if(room.defectorTurn.includes(room.num)){
+                members = members.map(m => {
+                    if(m.role === ROLES.DEFECTOR) return ROLES.SPY_DEFECTOR;
+                    if(m.role === ROLES.SPY_DEFECTOR) return ROLES.DEFECTOR;
+                    return m;
+                })
+            }
+            transaction.update(roomRef, {
+                ...room, score, members, missions: [...room.missions,
+                    {
+                        status: OP_STATUS.PREPARE,
+                        leader: getNextLeader(lastMission.leader, room.members.length),
+                        participants: [],
+                        num: lastMission.status === OP_STATUS.REJECTED ? lastMission.num : lastMission.num + 1
+                    }
+                ]});
+        }
+    });
+}
 
-export const gameApi = {create, join, listenRoom, login, start, end, kick};
+export const gameApi = {create, join, listenRoom, login, start, end, kick, setRoles, updateCurrentMission, nextMission};
