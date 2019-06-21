@@ -8,7 +8,7 @@ export class NewGameHeader extends React.Component {
         return <Message size='large'>
             <Message.Content>
                 <p>Waiting for other players to join</p>
-                <p><a className="roomLink" href={`/${roomId}`}>ROOM LINK</a></p>
+                <p><a className="roomLink" href={`/resistance/${roomId}`}>ROOM LINK</a></p>
             </Message.Content>
         </Message>
     }

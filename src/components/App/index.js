@@ -39,9 +39,9 @@ export class App extends React.Component {
     }
 
     tryLogin = () => {
-        const path = window.location.pathname.split('/');
+        const path = window.location.pathname.split('/').filter(Boolean);
         const cred = credApi.getCred();
-        if(cred && (!path[1] || cred.roomId === path[1])){
+        if(cred && (!path[path.length - 1] || cred.roomId === path[path.length - 1])){
             gameApi.login(cred).then(() => {
                 this.setState({
                     ...cred
