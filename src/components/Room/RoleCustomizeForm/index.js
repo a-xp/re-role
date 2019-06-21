@@ -14,7 +14,7 @@ export class RoleCustomizeForm extends React.Component{
                 <div className="ui large message">
                     <div className="content">
                         <p>Waiting for other players to join</p>
-                        <p><a className="roomLink" href={`/${roomId}`}>ROOM LINK</a></p>
+                        <p><a className="roomLink" href={`#${roomId}`}>ROOM LINK</a></p>
                     </div>
                 </div>
                 <p><b>People in this room ({members.length}):</b> {members.map(m=>m.login).join(", ")}</p>

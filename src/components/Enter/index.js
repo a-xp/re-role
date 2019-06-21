@@ -13,7 +13,7 @@ export class Enter extends React.Component {
         createErrMsg: []
     };
 
-    roomId = '';
+    roomId = window.location.hash.slice(1);
     form = React.createRef();
 
     render (){
@@ -21,12 +21,6 @@ export class Enter extends React.Component {
             {menuItem: 'JOIN', render: this.joinPane},
             {menuItem: 'CREATE', render: this.createPane},
         ]}/>
-    }
-
-    constructor(){
-        super();
-        const path = window.location.pathname.split('/').filter(Boolean);
-        this.roomId = (path[path.length-1] && path[path.length-1]!=='resistance') ? path[path.length-1] : ''
     }
 
     joinPane = () => {
