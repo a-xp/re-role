@@ -1,5 +1,5 @@
 import React from "react";
-import {ROLES, roleTraits, teamTraits} from "../../../domain/roles";
+import {ROLES, roleTraits, teamTraits} from "../../../../domain/roles";
 
 const options = Object.values(roleTraits).filter(r => !r.base && r.side);
 

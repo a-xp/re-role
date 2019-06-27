@@ -25,7 +25,7 @@ export class Room extends React.Component {
     removeListener = null;
 
     render() {
-        const {login, roomId} = this.props;
+        const {login, roomId, setVision} = this.props;
         const {room, errMsg, tab} = this.state;
         const user = room && room.members.find(u => u.login === login);
         return user && room ?
@@ -36,7 +36,7 @@ export class Room extends React.Component {
                     </div>}
                     <div className="room-content">
                         {tab === TABS.MEMBERS &&
-                            <MembersList room={room} user={user} api={gameApi} roomId={roomId} onLeave={() => this.leave()}/>
+                            <MembersList room={room} user={user} api={gameApi} roomId={roomId} onLeave={() => this.leave()} setVision={setVision}/>
                         }
                         {tab === TABS.BOARD && <Board room={room} user={user} roomId={roomId} api={gameApi}/>}
                     </div>
@@ -92,7 +92,6 @@ export class Room extends React.Component {
 
     leave(){
         const {onLeave} = this.props;
-        console.log('leave');
         onLeave && onLeave();
     }
 

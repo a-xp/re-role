@@ -26,7 +26,7 @@ export class ParticipantsStage extends React.Component {
             <div className="ui list">
                 {mission.participants.map(mid => {
                     const participant = members[mid];
-                    const vision = participant.login === user.login ? user.role : getRoleVision(user.role, participant.role);
+                    const vision = participant.login === user.login ? user.role : getRoleVision(user.role, participant.originalRole);
                     return <div className="item" key={mid}>
                         <img className="ui avatar image" src={roleTraits[vision].icon}/>
                         <div className="content">

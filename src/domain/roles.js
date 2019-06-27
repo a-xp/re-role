@@ -85,18 +85,16 @@ function shuffle(array) {
 }
 
 const teamSize = {
-    5: 3, 6: 4, 7: 4, 8: 5, 9: 6, 10: 6
+    5: 3, 6: 4, 7: 4, 8: 5, 9: 6, 10: 6, 11: 7
 };
 
 export function getRoleVision(ownRole, visionRole) {
-    console.log(ownRole, visionRole);
     switch (ownRole) {
         case ROLES.SPY:
         case ROLES.FALSE_COMMANDER:
         case ROLES.ASSASSIN:
         case ROLES.DEEP_COVER_SPY:
-            if(visionRole === ROLES.SPY_DEFECTOR) return ROLES.SPY;
-            return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : visionRole;
+            return roleTraits[visionRole].side === TEAM.GOOD ? ROLES.RESISTANCE : ROLES.SPY;
         case ROLES.BODY_GUARD: return visionRole === ROLES.COMMANDER || visionRole === ROLES.FALSE_COMMANDER ? ROLES.COMMANDER : ROLES.UNKNOWN;
         case ROLES.COMMANDER:
             if(visionRole === ROLES.DEEP_COVER_SPY) return ROLES.RESISTANCE;
@@ -109,4 +107,12 @@ export function getDefectorTurns(roles){
     return roles.filter(r => r===ROLES.SPY_DEFECTOR || r===ROLES.DEFECTOR).length === 2 ? [
         Math.ceil(Math.random()*7), Math.ceil(Math.random()*7)
     ] : [];
+}
+
+export function makeDefectorSwap(members){
+    return members.map(m => {
+        if(m.role === ROLES.DEFECTOR) return {...m, role: ROLES.SPY_DEFECTOR};
+        if(m.role === ROLES.SPY_DEFECTOR) return {...m, role: ROLES.DEFECTOR};
+        return m;
+    })
 }

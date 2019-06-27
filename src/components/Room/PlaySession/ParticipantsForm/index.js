@@ -42,15 +42,8 @@ export class ParticipantsForm extends React.Component{
     }
 
     propose(){
-        const {roomId, api, room} = this.props;
-        api.updateCurrentMission(roomId, mission => {
-            const numParticipants = participantsCount[room.members.length][mission.num];
-            if(numParticipants === mission.participants.length){
-                return {...mission, status: OP_STATUS.VOTE}
-            }else{
-                return mission;
-            }
-        });
+        const {api, roomId} = this.props;
+        api.proposeTeam(roomId);
     }
 
 }

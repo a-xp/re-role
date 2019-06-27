@@ -1,5 +1,5 @@
 .room {
-    min-height: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -7,6 +7,8 @@
 
 .room-content {
     flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 3px;
 }
 
 .room-menu {

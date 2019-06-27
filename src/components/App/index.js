@@ -18,7 +18,7 @@ export class App extends React.Component {
 
         return <React.Fragment>
                     {!roomId && <Enter onEnter={this.onEnter}/>}
-                    {roomId && <Room roomId={roomId} login={login} secret={secret} onLeave={this.onLeave}/>}
+                    {roomId && <Room roomId={roomId} login={login} secret={secret} onLeave={this.onLeave} setVision={this.setVision}/>}
             </React.Fragment>
     }
 
@@ -31,7 +31,13 @@ export class App extends React.Component {
 
     onLeave = () => {
         credApi.clearCred();
-        window.location = '/';
+        window.location = '';
+    };
+
+    setVision = (login) => {
+        this.setState({
+            login
+        })
     };
 
     componentDidMount(){
@@ -39,13 +45,16 @@ export class App extends React.Component {
     }
 
     tryLogin = () => {
-        const id = window.location.hash.slice(1);
+        const path = window.location.pathname.split('/').filter(Boolean);
+        const id = path[path.length - 1];
         const cred = credApi.getCred();
         if(cred && (!id || cred.roomId === id)){
             gameApi.login(cred).then(() => {
                 this.setState({
                     ...cred
                 })
+            }).catch((e) => {
+                console.error('Failed to rejoin the game', e);
             })
         }
     }

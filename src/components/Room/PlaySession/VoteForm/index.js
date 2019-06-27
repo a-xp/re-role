@@ -28,19 +28,6 @@ export class VoteForm extends React.Component{
     vote(resolution){
         const {roomId, api, room, user} = this.props;
         const userNum = room.members.findIndex(m => m.login === user.login);
-        api.updateCurrentMission(roomId, mission => {
-            if(!mission.vote || !mission.vote[userNum]){
-                const vote = mission.vote ? {...mission.vote}: {};
-                vote[userNum] = resolution;
-                const result = Object.values(vote).reduce((r, vote) => ({...r, [vote]: 1 + r[vote]}), {[VOTE.YES]: 0, [VOTE.NO]:0});
-                if(result[VOTE.YES] + result[VOTE.NO] === room.members.length){
-                    return {...mission, status: result[VOTE.YES] > result[VOTE.NO] ? OP_STATUS.PROGRESS: OP_STATUS.REJECTED, vote}
-                }else{
-                    return {...mission, vote}
-                }
-            }else{
-                return mission;
-            }
-        });
+        api.voteTeam(roomId, userNum, resolution);
     }
 }

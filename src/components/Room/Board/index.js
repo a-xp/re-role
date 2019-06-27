@@ -1,6 +1,6 @@
 import React from "react";
 import {STATUS} from "../../../api/enum";
-import {RoleCustomizeForm} from "../RoleCustomizeForm";
+import {RoleCustomizeForm} from "../PlaySession/RoleCustomizeForm";
 import {PlaySession} from "../PlaySession";
 import {ScoreBoard} from "../ScoreBoard";
 

@@ -1,5 +1,5 @@
 import React from "react";
-import {VOTE} from "../../../api/enum";
+import {VOTE} from "../../../../api/enum";
 
 export class VotesList extends React.Component {
 

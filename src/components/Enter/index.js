@@ -58,8 +58,8 @@ export class Enter extends React.Component {
                 }
                 <Form.Group grouped>
                     <label>Choose a game</label>
-                    <Form.Field label='Resistance Classic' control='input' type='radio' name='game' value={GAME_TYPE.CLASSIC} defaultChecked/>
-                    <Form.Field label='Resistance Avalon' control='input' type='radio' name='game' value={GAME_TYPE.AVALON}/>
+                    <Form.Field label='Resistance: Hunter module' control='input' type='radio' name='game' value={GAME_TYPE.CLASSIC} defaultChecked/>
+                    <Form.Field label='Resistance: Assassin module' control='input' type='radio' name='game' value={GAME_TYPE.AVALON}/>
                 </Form.Group>
                 <Form.Field label='Your name' control='input' name='login'/>
                 <Form.Group grouped>
