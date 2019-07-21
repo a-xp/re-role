@@ -1,5 +1,8 @@
 
-#The Resistance companion App
+# The Resistance companion App v.1
+
+- Assignes random roles to the players
+- Shows role vision
 
 
 ## Run locally
